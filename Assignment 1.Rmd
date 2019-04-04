@@ -1,0 +1,120 @@
+---
+title: "EDA and Data Scrubbing Bank Data"
+author: "Deboleena"
+date: "March 25, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+bankDirty <- read.csv("C:/Users/Deboleena/OneDrive - Southern Methodist University/Desktop/MSBA/Fall/Mod B/Data Mining/Assignment data/Homework1/bankDirty.csv", stringsAsFactors = FALSE)
+
+```
+No of rows and columns in th data set. Structure of data frame.
+```{r}
+rows <- nrow(bankDirty)
+rows
+columns <- ncol(bankDirty)
+columns
+str(bankDirty)
+```
+Variables and their types in data frame
+```{r}
+lapply(bankDirty, class)
+```
+```{r}
+numeric_rows <- bankDirty[,unlist(lapply(bankDirty, is.numeric))]
+summary(numeric_rows)
+```
+Checking for outliers and changing them to missing
+Plot data with outliers
+```{r}
+outlierVar <- which(sapply(bankDirty,is.numeric))
+bankDirty[,outlierVar] <- data.frame(lapply(bankDirty[outlierVar], function(x) {
+  ifelse((x < 0) | x > (mean(x, na.rm = TRUE) + 3*sd(x, na.rm = TRUE)), NA, x) }))
+summary(bankDirty)
+bankDirty_1 <- bankDirty
+```
+
+
+Imputing unkown and missing values with NA in categorical variables
+```{r}
+bankDirty <- bankDirty_1
+bankDirty[,-outlierVar] <- unlist(lapply(bankDirty[,-outlierVar], function(x) {
+  ifelse((x == "unknown") | (x == ""),NA,x)
+  }))
+```
+categorical variables after imputing with NAs
+```{r}
+bankDirty[,-outlierVar] <- lapply(bankDirty[,-outlierVar], as.factor)
+
+```
+Correlation of all numerical columns 
+Correlation in all numeric columns
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(gridExtra)
+# base  R solution
+p1 <- ggplot(bankDirty, aes(x=bankDirty$age)) +
+  geom_histogram(breaks=seq(0, 100, by =2),fill="blue", color="black")+
+  labs(title="Age histogram plot",x="age", y = "Count")+
+  theme_classic()
+
+p2 <- ggplot(bankDirty, aes(x=bankDirty$balance)) +
+  geom_histogram(fill="blue", color="black")+
+  labs(title="Balance histogram plot",x="balance", y = "Count")+
+  theme_classic()
+p3 <- ggplot(bankDirty, aes(x=bankDirty$duration)) +
+  geom_histogram(fill="blue", color="black")+
+  labs(title="Duration histogram plot",x="balance", y = "Count")+
+  theme_classic()
+p4 <- ggplot(bankDirty, aes(x=bankDirty$campaign)) +
+  geom_histogram(fill="blue", color="black")+
+  labs(title="Campaign histogram plot",x="balance", y = "Count")+
+  theme_classic()
+p5 <- ggplot(bankDirty, aes(x=bankDirty$pdays)) +
+  geom_histogram(fill="blue", color="black")+
+  labs(title="pdays histogram plot",x="balance", y = "Count")+
+  theme_classic()
+p6 <- ggplot(bankDirty, aes(x=bankDirty$previous)) +
+  geom_histogram(fill="blue", color="black")+
+  labs(title="Previous histogram plot",x="balance", y = "Count")+
+  theme_classic()
+grid.arrange(p1, p2, p3, p4, p5, p6, ncol=2)
+
+```
+
+```{r}
+q1 <- ggplot(bankDirty, aes(x=job))+
+  geom_bar(stat="count", width=0.7, fill="steelblue")+
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+q2 <- ggplot(bankDirty, aes(x=marital))+
+  geom_bar(stat="count", width=0.7, fill="steelblue")+
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+q3 <- ggplot(bankDirty, aes(x=education))+
+  geom_bar(stat="count", width=0.7, fill="steelblue")+
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+q4 <- ggplot(bankDirty, aes(x=y))+
+  geom_bar(stat="count", width=0.7, fill="steelblue")+
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)) 
+grid.arrange(q1, q2, q3, q4, ncol = 2)
+```
+
+```{r message=FALSE, warning=FALSE}
+library(wordcloud)
+library(tm)
+library(RColorBrewer)
+wordcloud(bankDirty$job, max.words = 100, random.order = FALSE)
+```
+
+
